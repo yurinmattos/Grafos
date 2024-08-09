@@ -157,19 +157,102 @@ void verificaGrafoCompleto(lista **g, int tam){
     else{
         printf("Nao eh completo!");
     }
-    
 }
+
+int existe(int* vet, int valor, int pos){
+    int i;
+    for (i = 0; i < pos; i++)
+    {
+        if(vet[i] == valor){
+            return 1;
+        }
+    }
+    return 0;
+}
+
+void imprimirCaminhos(lista** g, int destino, int* vet, int pos){
+    if (vet[pos-1] == destino)
+    {
+        int i;
+        printf("\n");
+        for (i = 0; i < pos; i++)
+        {
+            printf("%d-", vet[i]);
+        }
+    }
+    else{
+        lista *p = g[vet[pos-1]];
+        while(p != NULL){
+            if(!existe(vet, p->destino, pos)){
+                vet[pos] = p->destino;
+                imprimirCaminhos(g, destino, vet, pos+1);
+            }
+            p = p->prox;
+        }        
+    }   
+}
+
+void imprimirMenorCaminho(lista** g, int destino, int* vet, int* vetAux, int pos, int* tamMax){
+    if (vet[pos-1] == destino)
+    {
+        int cont = pos;
+        if(cont < *tamMax){
+            *tamMax = cont;
+            for (int i = 0; i < cont; i++)
+            {
+                vetAux[i] = vet[i];
+            }
+        }
+    }
+    else{
+        lista *p = g[vet[pos-1]];
+        while(p != NULL){
+            if(!existe(vet, p->destino, pos)){
+                vet[pos] = p->destino;
+                imprimirMenorCaminho(g, destino, vet, vetAux, pos+1, tamMax);
+            }
+            p = p->prox;
+        }        
+    }    
+}
+
+void imprimirMenorCusto(lista** g, int destino, int* vet, int* vetAux, int pos, int* custo, int custoAtual){
+    if (vet[pos-1] == destino)
+    {
+        if(custoAtual < *custo){
+            *custo = custoAtual;
+            for (int i = 0; i < pos; i++)
+            {
+                vetAux[i] = vet[i];
+            }
+            //custoAtual = 0;
+        }
+    }
+    else{
+        lista *p = g[vet[pos-1]];
+        while(p != NULL){
+            if(!existe(vet, p->destino, pos)){
+                vet[pos] = p->destino;
+                imprimirMenorCusto(g, destino, vet, vetAux, pos + 1, custo, custoAtual + p->custo);
+            }
+            p = p->prox;
+        }        
+    }    
+}
+
+
 
 int main()
 {
     int opc = 0;
+    int origem, destino;
     lista *g[TAM];
 
     inicializar(g, TAM);
 
     while (opc != 9)
     {
-        printf("\n1-Inserir aresta no grafo\n2-Remover aresta no grafo\n3-Imprime o grafo\n4-Imprime os graus de entrada e de saida de um vertice\n5-Verificar se um grafo e completo\n9-Sair\n:");
+        printf("\n1-Inserir aresta no grafo\n2-Remover aresta no grafo\n3-Imprime o grafo\n4-Imprime os graus de entrada e de saida de um vertice\n5-Verificar se um grafo e completo\n6-Imprimir caminhos de origem ao destino\n7-Menor caminho:\n9-Sair\n:");
         scanf("%d", &opc);
         switch (opc)
         {
@@ -187,6 +270,57 @@ int main()
             break;
         case 5:
             verificaGrafoCompleto(g, TAM-1);
+            break;
+        case 6:
+            printf("Insira a origem e o destino:\n");
+            scanf("%d\n%d", &origem, &destino);
+            int* vet = (int*) malloc(TAM * sizeof(int));
+            vet[0] = origem;
+            imprimirCaminhos(g, destino, vet, 1);
+            free(vet);
+            break;
+        case 7:
+            printf("Insira a origem e o destino:\n");
+            scanf("%d\n%d", &origem, &destino);
+            int custo = TAM;
+            int* vetAux = (int*) malloc(TAM * sizeof(int));
+            int* vet1 = (int*) malloc(TAM * sizeof(int));
+            for (int i = 0; i < TAM; i++) {
+                vet1[i] = -1;
+            }
+            vet1[0] = origem;
+            imprimirMenorCaminho(g, destino, vet1, vetAux, 1, &custo);
+
+            for(int i = 0; i < custo; i++){
+                if (vetAux[i] != -1) {
+                    printf("%d-", vetAux[i]);
+                }
+            }
+            free(vet1);
+            free(vetAux);
+            break;
+        case 8:
+            printf("Insira a origem e o destino:\n");
+            scanf("%d\n%d", &origem, &destino);
+            int custo2 = 100000;
+            int* vetAux2 = (int*) malloc(TAM * sizeof(int));
+            int* vet2 = (int*) malloc(TAM * sizeof(int));
+            for (int i = 0; i < TAM; i++) {
+                vetAux2[i] = -1;
+            }
+            vet2[0] = origem;
+            imprimirMenorCusto(g, destino, vet2, vetAux2, 1, &custo2, 0);
+
+            for(int i = 0; i < TAM; i++){
+                if (vetAux2[i] != -1) {
+                    printf("%d-", vetAux2[i]);
+                }
+                printf("\nCusto: %d\n\n", custo2);
+            }
+            free(vet2);
+            free(vetAux2);
+            break;
+
         default:
             break;
         }
